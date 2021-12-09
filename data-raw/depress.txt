@@ -1,0 +1,44 @@
+Depression Data Set Description
+
+     Educate (Level of Education)
+          (1) professional degree (non-college), (2) 2 years of college, 
+          (3) 2+ years of college, but not a BS degree, (4) BS degree, (5) MS degree
+
+     Income (Annual Income)
+          1 = $10,0001 to $19,999; 2 = $20,000 to $29,999; etc. ... 9 =  $90,000 to $99,999; 
+          10 = $100,000 or more
+
+     Trauma (Experience of Trauma; Percent of Life Events Viewed as Traumatic)
+          0 = 0%, 1 = 10%, 2= 20%, etc. ..., 9 = 90%, 10 = 100%
+ 
+     Satisfac (Satisfied with your Life)
+          0 = No, 1 = Yes
+
+     Control (Feeling of Control; How much do you feel in control)
+          0 = Not at all, 1 = A Little, 2 = Some, 3 = A Lot, 4 = Completely
+
+     History (Family History of Depression)
+          0 = No, 1 = Yes
+
+     Exercise (Weekly Amount of Exercise)
+          0 = None, 1 = 1 Hour, 2 = 2 Hours, 3 = 3 Hours, 4 = 4 Hours, 5 = 5 or more Hours
+
+     MHPG (3-methoxy-4-hydroxyphenylethyleneglycol, Depression Related Chemical 
+          Secreted in Urine; milligrams secreted per 24 hour period, labeled as mg/24h)
+          0 = 0 mg/24h, 1 = 100 mg/24h, etc. ..., 9 = 900 mg/24h, 10 = 1000+ mg/24h
+     
+     Sleep (Amount of Sleep Problems)
+          0 = None, 1 = 10% of the time, etc. ... , 9 = 90% of the time, 10 = 100% of the time
+
+     Depress (Perceived Level of Depression)
+          0 = None, 1 = 10% of the time, etc. ... , 9 = 90% of the time, 10 = 100% of the time
+
+     Press (Do I consider myself depressed)
+          0 = No, 1 = Yes
+
+     Welbeing (Feeling of Well Being; how often do you feel good about yourself)
+          0 = None, 1 = 10% of the time, etc. ... , 9 = 90% of the time, 10 = 100% of the time
+
+     Gender (Your Sex)
+          0 = Male, 1 = Female
+
