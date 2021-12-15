@@ -9,7 +9,7 @@
 #' @param ... currently ignored
 #' 
 #'
-#' @return This function returns an object of class ‘anova’.
+#' @return Object of class anova and data.frame
 #'
 #' @export
 #'

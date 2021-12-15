@@ -5,168 +5,103 @@
 #'
 #' @description 
 #' 
-#' @param object lm or aov model object
-#' @param trt character vector indicating the categorical predictor variables
-#' @param C numeric matrix, each row is a contrast that should sum to zero
-#' @param test character, indicating which testing method should be used
+#' @param estVec numeric vector of parameter estimates for comparison
+#' @param n numeric vector indicating the sample size for the parameter estimates, if a single value is given it is assumed to apply to all estiamtes
+#' @param C numeric matrix, each row is a contrast that should sum to zero, see details
+#' @param test character, indicating which testing method should be used, see details
 #' @param ... currently ignored
-#' 
 #'
-#' @return 
+#' @details The test argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.  
+#'
+#' @return Object of class anova and data.frame
 #'
 #' @export
 #'
 #'
 #'
 #' @examples
-#' data(depression)
-
-load('../data/depression.RData')
-
-head(depression)
-
-depression$gender <- ifelse(depression$gender,'F','M')
-depression$history <- ifelse(depression$history,'Y','N')
-f <- 'depress~history+gender+trauma+gender*trauma + welbeing + welbeing:gender'
-object <- lm(formula(f),data=depression)
-summary(object)
-anova(object)
-
-coef(object)[c(3)] ## female trauma
-sum(coef(object)[c(3,5)]) ## male trauma
-coef(object)[c(4)] ## female wellbeing
-sum(coef(object)[c(4,6)]) ## male wellbeing
-
-
-agricolae::HSD.test(object,trt=trt,console=TRUE)
-
-trt <- c('gender','history')
-covar <- c('trauma','welbeing')
-test='hsd'
-
-TukeyHSD(object,ordered=FALSE)
-contrastTest(object,trt=trt,test='hsd')
-
-model.tables(object)
+#' data(genericData)
+#'
+#' mod <- lm(Y~A,data=genericData)
+#' dfModel <- anovaTable(mod)['Model','df']
+#' dfError <- anovaTable(mod)['Residual','df']
+#' mse <- anovaTable(mod)['Residual','MS']
+#' meanVec <- aggregate(Y~A,FUN=mean,data=genericData)$Y
+#' n <- aggregate(Y~A,FUN=length,data=genericData)$Y
+#'
+#' ## can add names for ease of interpretation with the output
+#' names(meanVec) <- c('group 1','group 2','group 3')
+#' contrastTest(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,test='hsd')
+#'
+#' ## each group vs the mean of the other two
+#' C <- rbind(c(1,-0.5,-0.5),c(-0.5,1,-0.5),c(-0.5,-0.5,1))
+#' ## row names are not required but are helpful
+#' row.names(C) <- c('1 vs 2+3','2 vs 1+3','3 vs 1+2')
+#' contrastTest(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,C=C,test='scheffe')
+#' 
 
 
-contrastTest <- function(object,trt,C=NULL,test=c('scheffe','bonferroni','hsd','lsd'),covar=NULL,...){
+contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('scheffe','bonferroni','hsd','lsd'),...){
 
 
-    if(is.null(trt) & is.null(C)){
-        stop('Both trt and C cannot be NULL, one must be specified.')
+    ## ===================================================
+    ## argument checking
+    if(!is.numeric(estVec) || any(is.na(estVec)) || !is.vector(estVec) || length(estVec)<2){
+        stop('The argument estVec must be a numeric vector with length >=2.')
     }#end if
 
-    if(!any(class(object) %in% c('lm','aov'))){
-        stop('The argument object must be an lm or aov class.')
+    if(!is.numeric(n) || any(is.na(estVec)) || !is.vector(n) || any(n<=0)){
+        stop('The argument n must be a postive numeric vector.')
     }#end if
 
-    if(!is.character(trt) | !is.vector(trt)){
-        stop('The argument trt must be a character vector indicating the categorical predictor variables in the model object.')
+    if(length(n)==1){
+        nVec <- rep(n,length(estVec))
+    }else{
+        nVec <- n
+    }#end else if
+
+    if(length(nVec) != length(estVec)){
+        stop('The argument n must be length 1 or the same length as estVec.')
     }#end if
+
+
+    modList <- list(dfModel=dfModel,dfError=dfError,mse=mse)
+
+    for(i in seq_along(modList)){
+        thisVal <- modList[[i]]
+        thisName <- names(modList)[i]
+
+        if(!is.numeric(thisVal) || !is.vector(thisVal) || length(thisVal)!=1 || thisVal<=0){
+            stop('The argument ',thisName,' must be a single positive numeric value.')
+        }#end if
+    }#end for i
+
 
 
     testMethod <- match.arg(test)
     ##testMethod <- 'hsd'
 
-    
-    (allCovars <- unique(unlist(strsplit(attr(object$terms,'term.labels'),'\\:'))))
-    
-    if(any(grepl('I\\(',allCovars))){
-        stop('The argument object cannot have any transformations within the formula statement. \n For example: Y ~ X + I(log(A)) is not allowed.')
+
+    if(is.null(names(estVec))){
+        names(estVec) <- paste0('est',1:length(estVec))
     }#end if
-
-
-
-    if(!is.null(trt)){
-        badVar <- trt[!trt%in%allCovars]
-        if(length(badVar)>0){
-            stop('The following are not variables in the model object: ',paste0(badVar,collapse=', '),'\n Please change the trt argument.')
-        }#end if
-    }#end if
-
-    if(!is.null(covar)){
-        if(is.null(trt) || !is.character(covar) || !is.vector(covar)){
-            stop('The argument covar can only be specified when trt is also specified and covar must be a character vector.')
-        }#end if
-
-        badVar <- covar[!covar%in%allCovars]
-        if(length(badVar)>0){
-            stop('The following are not variables in the model object: ',paste0(badVar,collapse=', '),'\n Please change the covar argument.')
-        }#end if
-
-    }#end if
-
-    ## ===================================================
-    ## internal functions
-    makeVec <- function(d,r,t,FUN){
-        ##x <- meanDF
-        ##r <- responseVar
-        x <- aggregate(formula(paste0(r,'~',paste0(t,collapse='+'))),FUN=FUN,data=d)
-        out <- x[,r]
-        names(out) <- apply(x[,t,drop=FALSE],1,paste0,collapse=':')
-        return(out)
-    }#end makeVec
-
 
 
     ## ===================================================
-    ## extract info from model object
-    df <- object$model
-    dfError <- object$df.residual
-    mse <- sum(object$residuals^2)/dfError
-    dfModel <- object$rank-attr(object$terms, "intercept")
-
-
-    responseVar <- names(df)[!names(df)%in%allCovars]
-
-    if(length(responseVar) !=1){
-        stop('Problem with object argument. Only one response variable is allowed.')
-    }#end if
-
-
-    (nVec <- makeVec(df,r=responseVar,trt,FUN=length))
-
-
-    if(!is.null(covar)){
-
-        newData <- NULL
-        for(i in 1:length(covar)){
-
-            newData <- cbind(newData,makeVec(df,covar[i],trt,FUN=mean))
-        }#end for i
-        newData <- data.frame(newData)
-        names(newData) <- covar
-
-        rowSplit <- strsplit(row.names(newData),'\\:')
-        for(i in 1:length(trt)){
-            newData[,trt[i]] <- unlist(lapply(rowSplit,'[[',i))
-        }#end for i
-
-        newData
-
-    }else{
-
-        (betaVec <- makeVec(df,responseVar,trt,FUN=mean))
-    
-    }#end else if
-
-    
     ## create constract matrix if none provide
     ## does all pairwise comparisons 
     if(is.null(C)){
-
-        ##J$ this does not make sense if testing the beta coefficients
-        combResult <- combn(length(betaVec) ,2)
+        
+        combResult <- combn(length(estVec) ,2)
 
         contrastNames <- NULL
         for(i in 1:ncol(combResult)){
-            tmpContrast <- rep(0,length(meanVec))
+            tmpContrast <- rep(0,length(estVec))
             tmpContrast[combResult[1,i]] <- 1
             tmpContrast[combResult[2,i]] <- -1
             C <- rbind(C,tmpContrast)
 
-            contrastNames <- c(contrastNames,paste0(names(meanVec)[combResult[1,i]],' vs ',names(meanVec)[combResult[2,i]]))
+            contrastNames <- c(contrastNames,paste0(names(estVec)[combResult[1,i]],' vs ',names(estVec)[combResult[2,i]]))
          
         }#end for i
 
@@ -174,7 +109,7 @@ contrastTest <- function(object,trt,C=NULL,test=c('scheffe','bonferroni','hsd','
     }#end if
     
 
-    if(!is.matrix(C) || !is.numeric(C) || !all(rowSums(C)==0) || ncol(C) != length(meanVec)){
+    if(!is.matrix(C) || !is.numeric(C) || !all(rowSums(C)==0) || ncol(C) != length(estVec)){
         stop('The argument C must either be NULL or a numeric matrix. Each row corresponds to a contrast to be tested. The number of columns must be equal to the number of total number of parameters considered.')
     }#end if
 
@@ -184,29 +119,30 @@ contrastTest <- function(object,trt,C=NULL,test=c('scheffe','bonferroni','hsd','
     }#end if
 
     ## contrast estimates
-    est <- C%*%betaVec
+    est <- C%*%estVec
 
+    
     ## generic constrast variance
     estVar <- (C^2)%*%(1/nVec) *mse 
 
 
     if(testMethod=='scheffe'){
         
-        out <- data.frame(estimate=est,df1=length(betaVec)-1,
-                          df2=dfError,F=est^2/(estVar*(length(betaVec)-1)))
-        out[,'Pr(>F)'] <- pf(q=out$F,df1=out$df1,df2=out$df2,lower.tail=TRUE)
+        out <- data.frame(estimate=est,df1=dfModel,
+                          df2=dfError,F=est^2/(estVar*dfModel))
+        out[,'Pr(>F)'] <- pf(q=out$F,df1=dfModel,df2=dfError,lower.tail=FALSE)
 
     }else if(testMethod=='hsd'){
 
-        out <- data.frame(estimate=est,df1=length(betaVec),
+        out <- data.frame(estimate=est,df1=length(estVec),
                           df2=dfError,q=abs(est)/sqrt(estVar/2))
-        out[,'Pr(>q)'] <- ptukey(q=out$q,nmeans=length(betaVec),df=dfError,
+        out[,'Pr(>q)'] <- ptukey(q=out$q,nmeans=length(estVec),df=dfError,
                                  lower.tail=FALSE)
     
     }else{
 
         out <- data.frame(estimate=est,df=dfError,t=est/sqrt(estVar))
-        out[,'Pr(>|t|)'] <- pt(q=abs(out$t),df=dfError,lower.tail=FALSE)
+        out[,'Pr(>|t|)'] <- pt(q=abs(out$t),df=dfError,lower.tail=FALSE)*2
 
         if(testMethod=='bonferroni'){
             out[,'Pr(>|t|)'] <- out[,'Pr(>|t|)']*nrow(out)
