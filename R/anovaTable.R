@@ -13,7 +13,7 @@
 #'
 #' @export
 #'
-#'
+#' @import stats
 #'
 #' @examples
 #' data(depression)
@@ -75,7 +75,7 @@ anovaTable <- function(object,...){
 
     out$MS <- out$SS/out$df
     out$F <- c(f,NA)
-    out$`Pr(>F)`  <- c(pf(q=f,df1=dfModel,df2=dfError,lower.tail=FALSE),NA)
+    out$`Pr(>F)`  <- c(stats::pf(q=f,df1=dfModel,df2=dfError,lower.tail=FALSE),NA)
     row.names(out) <- c('Model','Residuals')
     class(out) <- c('anova','data.frame')
 

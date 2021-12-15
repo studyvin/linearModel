@@ -3,21 +3,28 @@
 #'
 #' @title Test Contrasts
 #'
-#' @description 
+#' @description Contrast testing function. Designed to test contrasts of parameter estimates from a linear model. 
 #' 
 #' @param estVec numeric vector of parameter estimates for comparison
 #' @param n numeric vector indicating the sample size for the parameter estimates, if a single value is given it is assumed to apply to all estiamtes
+#' @param dfModel numeric value for the model degrees of freedom
+#' @param dfError numeric value for the error or residual degrees of freedom
+#' @param mse numeric value for the mean squared error from the model
 #' @param C numeric matrix, each row is a contrast that should sum to zero, see details
 #' @param test character, indicating which testing method should be used, see details
 #' @param ... currently ignored
 #'
-#' @details The test argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.  
+#' @details The test argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.
+#'
+#' The matrix C is the contrast matrix. Each row is a separate contrast. The number of columns of C must be equal to the \code{length(estVec)}. Row names for C are retained in the output, but they are not required. 
 #'
 #' @return Object of class anova and data.frame
 #'
 #' @export
 #'
-#'
+#' @import stats
+#' @import utils
+#' 
 #'
 #' @examples
 #' data(genericData)
@@ -92,7 +99,7 @@ contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('scheffe','b
     ## does all pairwise comparisons 
     if(is.null(C)){
         
-        combResult <- combn(length(estVec) ,2)
+        combResult <- utils::combn(length(estVec) ,2)
 
         contrastNames <- NULL
         for(i in 1:ncol(combResult)){
@@ -130,19 +137,19 @@ contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('scheffe','b
         
         out <- data.frame(estimate=est,df1=dfModel,
                           df2=dfError,F=est^2/(estVar*dfModel))
-        out[,'Pr(>F)'] <- pf(q=out$F,df1=dfModel,df2=dfError,lower.tail=FALSE)
+        out[,'Pr(>F)'] <- stats::pf(q=out$F,df1=dfModel,df2=dfError,lower.tail=FALSE)
 
     }else if(testMethod=='hsd'){
 
         out <- data.frame(estimate=est,df1=length(estVec),
                           df2=dfError,q=abs(est)/sqrt(estVar/2))
-        out[,'Pr(>q)'] <- ptukey(q=out$q,nmeans=length(estVec),df=dfError,
+        out[,'Pr(>q)'] <- stats::ptukey(q=out$q,nmeans=length(estVec),df=dfError,
                                  lower.tail=FALSE)
     
     }else{
 
         out <- data.frame(estimate=est,df=dfError,t=est/sqrt(estVar))
-        out[,'Pr(>|t|)'] <- pt(q=abs(out$t),df=dfError,lower.tail=FALSE)*2
+        out[,'Pr(>|t|)'] <- stats::pt(q=abs(out$t),df=dfError,lower.tail=FALSE)*2
 
         if(testMethod=='bonferroni'){
             out[,'Pr(>|t|)'] <- out[,'Pr(>|t|)']*nrow(out)
