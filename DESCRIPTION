@@ -1,14 +1,14 @@
 Package: linearModel
 Type: Package
 Title: Linear Model Functions
-Version: 1.0.1
-Date: 2026-10-12
+Version: 1.1.0
+Date: 2026-10-11
 Authors@R: c(person("Jared", "Studyvin", role = c("aut", "cre"),
                      email = "studyvinstat@gmail.com"))
 Author: Jared Studyvin [aut, cre]
 Depends: R (>= 3.6.0)
-Imports: stats, utils
+Imports: stats, utils, methods
 Maintainer: Jared Studyvin <studyvinstat@gmail.com>
 Description: Functions to access and test results from a linear model. 
-License: GNU General Public License
-RoxygenNote: 7.1.2
+License: MIT + file LICENSE
+RoxygenNote: 7.3.2

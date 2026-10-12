@@ -11,7 +11,7 @@ contrastTest(
   dfError,
   mse,
   C = NULL,
-  test = c("scheffe", "bonferroni", "hsd", "lsd"),
+  test = c("hsd", "scheffe", "bonferroni", "lsd"),
   ...
 )
 }
@@ -42,6 +42,8 @@ Contrast testing function. Designed to test contrasts of parameter estimates fro
 The test argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.
 
 The matrix C is the contrast matrix. Each row is a separate contrast. The number of columns of C must be equal to the \code{length(estVec)}. Row names for C are retained in the output, but they are not required.
+
+This is the workhorse function. The work flow is designed that a user calls \code{\link[linearModel]{cellMeans}} and \code{\link[linearModel]{contrast}} functions.
 }
 \examples{
 data(genericData)
@@ -63,4 +65,7 @@ C <- rbind(c(1,-0.5,-0.5),c(-0.5,1,-0.5),c(-0.5,-0.5,1))
 row.names(C) <- c('1 vs 2+3','2 vs 1+3','3 vs 1+2')
 contrastTest(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,C=C,test='scheffe')
 
+}
+\seealso{
+\code{\link[linearModel]{cellMeans}} \code{\link[linearModel]{contrast}}
 }

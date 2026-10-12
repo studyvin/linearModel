@@ -5,7 +5,7 @@
 #'
 #' @description Produces the overall ANOVA table where the model sum of squares are not partioned into their parts. 
 #' 
-#' @param object lm or aov model object
+#' @param object \code{\link[stats]{lm}} or \code{\link[stats]{aov}} model object
 #' @param ... currently ignored
 #' 
 #'
@@ -14,6 +14,7 @@
 #' @export
 #'
 #' @import stats
+#' @import methods
 #'
 #' @examples
 #' data(depression)
@@ -35,7 +36,7 @@ anovaTable <- function(object,...){
     ##object <- modMLR
     ##object <- modAOV
 
-    if(!any(class(object) %in% c('lm','aov'))){
+    if(missing(object) | !methods::is(object, 'lm')){
         stop('The argument object must be an lm or aov class.')
     }#end if
 

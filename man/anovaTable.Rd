@@ -7,7 +7,7 @@
 anovaTable(object, ...)
 }
 \arguments{
-\item{object}{lm or aov model object}
+\item{object}{\code{\link[stats]{lm}} or \code{\link[stats]{aov}} model object}
 
 \item{...}{currently ignored}
 }

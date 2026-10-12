@@ -16,9 +16,13 @@
 #'
 #' @details The test argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.
 #'
-#' The matrix C is the contrast matrix. Each row is a separate contrast. The number of columns of C must be equal to the \code{length(estVec)}. Row names for C are retained in the output, but they are not required. 
+#' The matrix C is the contrast matrix. Each row is a separate contrast. The number of columns of C must be equal to the \code{length(estVec)}. Row names for C are retained in the output, but they are not required.
+#'
+#' This is the workhorse function. The work flow is designed that a user calls \code{\link[linearModel]{cellMeans}} and \code{\link[linearModel]{contrast}} functions. 
 #'
 #' @return Object of class anova and data.frame
+#'
+#' @seealso \code{\link[linearModel]{cellMeans}} \code{\link[linearModel]{contrast}}
 #'
 #' @export
 #'
@@ -48,7 +52,7 @@
 #' 
 
 
-contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('scheffe','bonferroni','hsd','lsd'),...){
+contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('hsd', 'scheffe','bonferroni','lsd'),...){
 
 
     ## ===================================================
@@ -108,7 +112,7 @@ contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('scheffe','b
             tmpContrast[combResult[2,i]] <- -1
             C <- rbind(C,tmpContrast)
 
-            contrastNames <- c(contrastNames,paste0(names(estVec)[combResult[1,i]],' vs ',names(estVec)[combResult[2,i]]))
+            contrastNames <- c(contrastNames,paste0(names(estVec)[combResult[1,i]],' - ',names(estVec)[combResult[2,i]]))
          
         }#end for i
 
