@@ -1,8 +1,8 @@
 Package: linearModel
 Type: Package
 Title: Linear Model Functions
-Version: 1.1.0
-Date: 2026-10-11
+Version: 1.1.1
+Date: 2026-10-13
 Authors@R: c(person("Jared", "Studyvin", role = c("aut", "cre"),
                      email = "studyvinstat@gmail.com"))
 Author: Jared Studyvin [aut, cre]

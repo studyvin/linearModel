@@ -1,5 +1,5 @@
 
-#' @name contrastTest
+#' @name testContrast
 #'
 #' @title Test Contrasts
 #'
@@ -11,10 +11,10 @@
 #' @param dfError numeric value for the error or residual degrees of freedom
 #' @param mse numeric value for the mean squared error from the model
 #' @param C numeric matrix, each row is a contrast that should sum to zero, see details
-#' @param test character, indicating which testing method should be used, see details
+#' @param adjust character, indicating which testing method should be used, see details
 #' @param ... currently ignored
 #'
-#' @details The test argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.
+#' @details The adjust argument can be one of the following: 'scheffe','bonferroni','hsd', or 'lsd'. 'hsd' is the Tukey HSD test. 'lsd' is th Fisher LSD test. The other two are the Scheffe test and Bonferroni adjustment.
 #'
 #' The matrix C is the contrast matrix. Each row is a separate contrast. The number of columns of C must be equal to the \code{length(estVec)}. Row names for C are retained in the output, but they are not required.
 #'
@@ -42,17 +42,17 @@
 #'
 #' ## can add names for ease of interpretation with the output
 #' names(meanVec) <- c('group 1','group 2','group 3')
-#' contrastTest(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,test='hsd')
+#' testContrast(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,adjust='hsd')
 #'
 #' ## each group vs the mean of the other two
 #' C <- rbind(c(1,-0.5,-0.5),c(-0.5,1,-0.5),c(-0.5,-0.5,1))
 #' ## row names are not required but are helpful
 #' row.names(C) <- c('1 vs 2+3','2 vs 1+3','3 vs 1+2')
-#' contrastTest(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,C=C,test='scheffe')
+#' testContrast(estVec=meanVec,n=n,dfModel=dfModel,dfError=dfError,mse=mse,C=C,adjust='scheffe')
 #' 
 
 
-contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('hsd', 'scheffe','bonferroni','lsd'),...){
+testContrast <- function(estVec,n,dfModel,dfError,mse,C=NULL,adjust=c('hsd', 'scheffe','bonferroni','lsd'),...){
 
 
     ## ===================================================
@@ -89,7 +89,7 @@ contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('hsd', 'sche
 
 
 
-    testMethod <- match.arg(test)
+    testMethod <- match.arg(adjust)
     ##testMethod <- 'hsd'
 
 
@@ -120,7 +120,9 @@ contrastTest <- function(estVec,n,dfModel,dfError,mse,C=NULL,test=c('hsd', 'sche
     }#end if
     
 
-    if(!is.matrix(C) || !is.numeric(C) || !all(rowSums(C)==0) || ncol(C) != length(estVec)){
+    ##if(!is.matrix(C) || !is.numeric(C) || !all(rowSums(C)==0) || ncol(C) != length(estVec)){
+    ## a contrast does not need to sum to zero
+    if(!is.matrix(C) || !is.numeric(C) ||  ncol(C) != length(estVec)){
         stop('The argument C must either be NULL or a numeric matrix. Each row corresponds to a contrast to be tested. The number of columns must be equal to the number of total number of parameters considered.')
     }#end if
 

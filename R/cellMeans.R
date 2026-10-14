@@ -7,6 +7,7 @@
 #' 
 #' @param object \code{\link[stats]{lm}} or \code{\link[stats]{aov}} model object
 #' @param factors character vector providing the model terms (factors/categorical predictors) to obtain the means for each level or level combinations
+#' @param var.equal currently ignored
 #' @param ... currently ignored
 #'
 #' @details The purpose of this function is to summarize results from a linear model in preperation to test contrast(s) with a call to the \code{\link[linearModel]{contrast}} function.
@@ -36,14 +37,19 @@
 
 
 
-cellMeans <- function(object, factors=NULL, ...){
+cellMeans <- function(object, factors=NULL, var.equal=TRUE, ...){
 
 
     ## ########################################
     ## argument checking
     ## ########################################
 
-    if(missing(object) | !methods::is(object, 'lm')){
+    if(missing(var.equal) || !is.vector(var.equal) || !is.logical(var.equal) || length(var.equal) !=1){
+        stop('Argument var.equal must be a single logical value')
+    }#end
+
+    
+    if(missing(object) || !methods::is(object, 'lm')){
         stop('Argument object must be a fitted model from a call to lm() or aov()')
     }#end if
 
@@ -103,7 +109,7 @@ cellMeans <- function(object, factors=NULL, ...){
     }#end if
     
 
-    checkNames <- predNames%in%c('mean','r','var')
+    checkNames <- predNames%in%c('mean','n','sd')
     if(any(checkNames)){
         names(df)[names(df)%in%predNames[checkNames]] <- base::toupper(names(df)[names(df)%in%predNames[checkNames]])
         predNames[checkNames] <- toupper(predNames[checkNames])
@@ -121,8 +127,8 @@ cellMeans <- function(object, factors=NULL, ...){
     aggFun <- function(x, rn){
         out <- unique(x[,names(x)!=rn,drop=FALSE])
         out$mean <- mean(x[,rn])
-        out$var <- var(x[,rn])
-        out$r <- length(x[,rn])
+        out$sd <- sd(x[,rn])
+        out$n <- length(x[,rn])
         return(out)
     }#end aggFun
 
@@ -138,7 +144,7 @@ cellMeans <- function(object, factors=NULL, ...){
     (mse <- AT['Residuals','MS'])
 
 
-    out <- list(cellMeans=outMeans, mse=mse, dfModel=dfM, dfError=dfE)
+    out <- list(cellMeans=outMeans, mse=mse, dfModel=dfM, dfError=dfE, var.equal=var.equal)
 
     class(out) <- 'cellMeans'
 
@@ -170,6 +176,6 @@ print.cellMeans <- function(x, ...){
     
     cat('\n MSE =', x$mse, 'with df', x$dfModel, 'and', x$dfError, '\n')
     invisible(x)
-}
+} #end function
 
 
